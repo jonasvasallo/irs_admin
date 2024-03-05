@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:irs_admin/core/constants.dart';
 
 class InputButton extends StatelessWidget {
   final String label;
   final Function function;
   final bool large;
+  final Color? color;
   const InputButton(
       {Key? key,
       required this.label,
       required this.function,
-      required this.large})
+      required this.large, this.color})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return FilledButton(
       style: ButtonStyle(
+        backgroundColor: MaterialStatePropertyAll((color != null) ? color : accentColor,),
         padding: MaterialStatePropertyAll(
           EdgeInsets.all((large) ? 16 : 8),
         ),

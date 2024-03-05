@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,11 +13,7 @@ Future<void> main() async {
 
   if (kIsWeb) {
     await Firebase.initializeApp(
-      options: FirebaseOptions(
-          apiKey: "AIzaSyCU7lz9ijnL5SAak3_AUNW_WrytTq50LNE",
-          projectId: "irs-capstone",
-          messagingSenderId: "718420727642",
-          appId: "1:718420727642:web:de65ae805b76a207b24563"),
+      options: DefaultFirebaseOptions.currentPlatform
     );
   }
 
@@ -29,6 +27,7 @@ class Main extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: AppRouter.router,
+      scrollBehavior: MyCustomScrollBehavior(),
       scaffoldMessengerKey: Utilities.messengerKey,
       debugShowCheckedModeBanner: false,
       title: "IRS Admin",
@@ -42,4 +41,13 @@ class Main extends StatelessWidget {
       ),
     );
   }
+}
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+ // Override behavior methods and getters like dragDevices
+ @override
+ Set<PointerDeviceKind> get dragDevices => {
+   PointerDeviceKind.touch,
+   PointerDeviceKind.mouse,
+   // etc.
+ };
 }

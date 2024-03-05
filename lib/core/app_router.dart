@@ -2,9 +2,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
+import 'package:irs_admin/views/complaints/complaint_details_page.dart';
+import 'package:irs_admin/views/complaints/view_complaints_page.dart';
 import 'package:irs_admin/views/dashboard_view.dart';
 import 'package:irs_admin/views/forgot_password_view.dart';
 import 'package:irs_admin/views/login_view.dart';
+import 'package:irs_admin/views/news/news_page.dart';
+import 'package:irs_admin/views/news/update_news_page.dart';
+import 'package:irs_admin/views/reconciliation/schedule_meeting_page.dart';
+import 'package:irs_admin/views/reports/add_incident_page.dart';
+import 'package:irs_admin/views/reports/incident_details_page.dart';
+import 'package:irs_admin/views/reports/view_incidents_page.dart';
 import 'package:irs_admin/views/users/update_user_view.dart';
 import 'package:irs_admin/views/users/users_view.dart';
 
@@ -25,10 +33,10 @@ class AppRouter {
       GlobalKey<NavigatorState>(debugLabel: "shellUsers");
   static final _rootNavigatorNews =
       GlobalKey<NavigatorState>(debugLabel: "shellNews");
-  static final _rootNavigatorRequests =
-      GlobalKey<NavigatorState>(debugLabel: "shellRequests");
-  static final _rootNavigatorSchedule =
-      GlobalKey<NavigatorState>(debugLabel: "shellSchedule");
+  static final _rootNavigatorComplaints =
+      GlobalKey<NavigatorState>(debugLabel: "shellComplaints");
+  // static final _rootNavigatorSchedule =
+  //     GlobalKey<NavigatorState>(debugLabel: "shellSchedule");
 
   static final GoRouter router = GoRouter(
     initialLocation: initR,
@@ -71,9 +79,19 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/reports',
-                builder: (context, state) => Center(
-                  child: Text("Reports"),
-                ),
+                builder: (context, state) => ViewIncidentsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'details/:id',
+                    builder: (context, state) => IncidentDetailsPage(
+                      incident_id: state.pathParameters['id'] ?? '',
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'add',
+                    builder: (context, state) => AddIncidentPage(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -99,34 +117,43 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/news',
-                builder: (context, state) => Center(
-                  child: Text("News"),
-                ),
+                builder: (context, state) => NewsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'update/:id',
+                    builder: (context, state) => UpdateNewsPage(
+                        news_id: state.pathParameters['id'] ?? ''),
+                  ),
+                ],
               ),
             ],
           ),
           StatefulShellBranch(
-            navigatorKey: _rootNavigatorRequests,
+            navigatorKey: _rootNavigatorComplaints,
             routes: [
               GoRoute(
-                path: '/requests',
-                builder: (context, state) => Center(
-                  child: Text("Requests"),
-                ),
+                path: '/complaints',
+                builder: (context, state) => ViewComplaintsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'details/:id',
+                    builder: (context, state) => ComplaintDetailsPage(
+                      complaint_id: state.pathParameters['id'] ?? '',
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          StatefulShellBranch(
-            navigatorKey: _rootNavigatorSchedule,
-            routes: [
-              GoRoute(
-                path: '/schedule',
-                builder: (context, state) => Center(
-                  child: Text("Schedule"),
-                ),
-              ),
-            ],
-          ),
+          // StatefulShellBranch(
+          //   navigatorKey: _rootNavigatorSchedule,
+          //   routes: [
+          //     GoRoute(
+          //       path: '/schedule',
+          //       builder: (context, state) => ScheduleMeetingPage(),
+          //     ),
+          //   ],
+          // ),
         ],
         builder: (context, state, navigationShell) {
           return NavigationMenu(

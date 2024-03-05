@@ -82,6 +82,7 @@ class _UsersViewState extends State<UsersView> {
                                     DataCell(Text(user['user_type']
                                         .toString()
                                         .toUpperCase())),
+                                    DataCell(SizedBox(width: 24, height: 24, child: Image.network(user['profile_path'], fit: BoxFit.cover,),),),
                                     DataCell(Text(
                                         "${user['first_name']} ${user['middle_name']} ${user['last_name']}")),
                                     DataCell(Text(user['gender'])),
@@ -177,6 +178,7 @@ class _UsersViewState extends State<UsersView> {
                                           DataColumn(
                                             label: Text("User Type"),
                                           ),
+                                          DataColumn(label: Text("Profile"),),
                                           DataColumn(
                                             label: Text("Full Name"),
                                           ),
@@ -1098,10 +1100,6 @@ class _AddUserAlertState extends State<AddUserAlert> {
                     DropdownMenuEntry(
                       value: "tanod",
                       label: "Tanod",
-                    ),
-                    DropdownMenuEntry(
-                      value: "admin",
-                      label: "Admin",
                     ),
                   ],
                   initialSelection: _dropdownValue,

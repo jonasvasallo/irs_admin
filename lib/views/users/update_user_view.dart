@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:irs_admin/core/constants.dart';
 import 'package:irs_admin/core/input_validator.dart';
+import 'package:irs_admin/core/utilities.dart';
 import 'package:irs_admin/models/UserModel.dart';
 import 'package:irs_admin/widgets/input_button.dart';
 import 'package:irs_admin/widgets/input_field.dart';
@@ -53,6 +55,7 @@ class _UpdateUserViewState extends State<UpdateUserView> {
       _contactNoController.text = userDetails['contact_no'];
       _emailAddressController.text = userDetails['email'];
       _dropdownValue = userDetails['user_type'];
+      profile_path = userDetails['profile_path'];
       verified = userDetails['verified'];
     });
   }
@@ -157,32 +160,12 @@ class _UpdateUserViewState extends State<UpdateUserView> {
                                   ? TextButton(
                                       onPressed: () {
                                         showDialog(
+                                          useRootNavigator: true,
                                           context: context,
                                           builder: (context) {
-                                            return AlertDialog(
-                                              content: Padding(
-                                                padding: EdgeInsets.all(16),
-                                                child: SizedBox(
-                                                  width: 700,
-                                                  height: 400,
-                                                  child: Column(
-                                                    children: [
-                                                      Container(
-                                                        width: 700,
-                                                        height: 300,
-                                                        color: Colors.grey,
-                                                      ),
-                                                      SizedBox(
-                                                        height: 8,
-                                                      ),
-                                                      InputButton(
-                                                          label: "Verify",
-                                                          function: () {},
-                                                          large: true),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
+                                            return VerifyUserDialog(
+                                              user_id: widget.userID,
+                                              onAction: () {},
                                             );
                                           },
                                         );
@@ -326,10 +309,6 @@ class _UpdateUserViewState extends State<UpdateUserView> {
                                 value: "tanod",
                                 label: "Tanod",
                               ),
-                              DropdownMenuEntry(
-                                value: "admin",
-                                label: "Admin",
-                              ),
                             ],
                             initialSelection: _dropdownValue,
                             menuStyle: MenuStyle(),
@@ -360,6 +339,204 @@ class _UpdateUserViewState extends State<UpdateUserView> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class VerifyUserDialog extends StatefulWidget {
+  final String user_id;
+  final VoidCallback onAction;
+  const VerifyUserDialog(
+      {Key? key, required this.user_id, required this.onAction})
+      : super(key: key);
+
+  @override
+  _VerifyUserDialogState createState() => _VerifyUserDialogState();
+}
+
+class _VerifyUserDialogState extends State<VerifyUserDialog> {
+  Future<String> fetchVerificationPhoto() async {
+    try {
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.user_id)
+          .get();
+
+      if (userSnapshot.exists) {
+        // Document exists, now convert it to a map
+        Map<String, dynamic> userDetails =
+            userSnapshot.data() as Map<String, dynamic>;
+
+        return userDetails['verification_photo'];
+      } else {
+        // Document doesn't exist
+        print('User not found');
+        return '';
+      }
+    } catch (e) {
+      print('Error retrieving user details: $e');
+      return '';
+    }
+  }
+
+  void verifyUser() async {
+    try {
+      Map<String, dynamic> user = {
+        'verified': true,
+      };
+
+      await UserModel.updateUserDetails(widget.user_id, user);
+      Utilities.showSnackBar("Successfully verified user", Colors.green);
+      widget.onAction();
+    } catch (ex) {
+      print(ex);
+      Utilities.showSnackBar("$ex", Colors.red);
+    }
+
+    Navigator.of(context).pop();
+  }
+
+  void rejectVerification(String reason) async {
+    try {
+
+      CollectionReference userRef = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.user_id).collection('notifications');
+
+      
+      await userRef.add({
+        'content' : "Verification rejected. Reason: $reason",
+        'timestamp' : FieldValue.serverTimestamp(),
+      });
+
+      Utilities.showSnackBar("Verification rejected", Colors.green);
+      widget.onAction();
+    } catch (ex) {
+      print(ex);
+      Utilities.showSnackBar("$ex", Colors.red);
+    }
+
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      // content: Padding(
+      //   padding: EdgeInsets.all(16),
+      //   child: SizedBox(
+      //     height: 300,
+      //     width: 500,
+      //     child: Column(
+      //       children: [
+      //         Container(
+      //           width: 500,
+      //           height: 300,
+      //           color: Colors.grey,
+      //         ),
+      //         SizedBox(
+      //           height: 8,
+      //         ),
+
+      //       ],
+      //     ),
+      //   ),
+      // ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FutureBuilder(
+              future: fetchVerificationPhoto(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  String photo_url = snapshot.data!;
+                  if (photo_url == null || photo_url == "") {
+                    return Container(
+                      width: 500,
+                      height: 300,
+                      color: Colors.grey,
+                      child: Center(child: Icon(Icons.error)),
+                    );
+                  } else {
+                    return Container(
+                      width: 500,
+                      height: 300,
+                      color: Colors.grey,
+                      child: Image.network(
+                        photo_url,
+                        fit: BoxFit.contain,
+                      ),
+                    );
+                  }
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              }),
+          SizedBox(
+            height: 8,
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: InputButton(
+                  label: "REJECT",
+                  function: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        final _reasonController = TextEditingController();
+                        return AlertDialog(
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              InputField(
+                                placeholder: "Rejection reason...",
+                                inputType: "message",
+                                controller: _reasonController,
+                                label: "Reason for rejection",
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("Cancel")),
+                            TextButton(onPressed: () {
+                              if(_reasonController.text.isEmpty){
+                                Utilities.showSnackBar("Please provide a reason", Colors.red);
+                                return;
+                              }
+                              rejectVerification(_reasonController.text.trim());
+
+                            }, child: Text("Submit")),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  large: false,
+                  color: Colors.red,
+                ),
+              ),
+              SizedBox(
+                width: 8,
+              ),
+              Expanded(
+                  child: InputButton(
+                label: "Verify",
+                function: () {
+                  verifyUser();
+                },
+                large: false,
+                color: Colors.green,
+              )),
+            ],
+          )
+        ],
       ),
     );
   }

@@ -5,6 +5,7 @@ class InputField extends StatefulWidget {
   final String placeholder;
   final String inputType;
   final String? label;
+  final String? value;
   final TextEditingController controller;
   final String? Function(String?)? validator;
   final Icon? prefixIcon;
@@ -14,6 +15,7 @@ class InputField extends StatefulWidget {
     required this.placeholder,
     required this.inputType,
     this.label,
+    this.value,
     required this.controller,
     this.validator,
     this.prefixIcon,
@@ -62,6 +64,8 @@ class _InputFieldState extends State<InputField> {
             height: 4,
           ),
           TextFormField(
+            minLines: (widget.inputType == "message") ? 5 : 1,
+            maxLines: (widget.inputType == "message") ? 5 : 1,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             validator: widget.validator,
             controller: widget.controller,

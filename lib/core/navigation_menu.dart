@@ -14,6 +14,20 @@ class NavigationMenu extends StatefulWidget {
 class _NavigationMenuState extends State<NavigationMenu> {
   int nav_index = 0;
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    nav_index = widget.navigationShell.currentIndex;
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    nav_index = widget.navigationShell.currentIndex;
+  }
+
   void goToBranch(int value) {
     widget.navigationShell.goBranch(value,
         initialLocation: value == widget.navigationShell.currentIndex);
@@ -25,6 +39,8 @@ class _NavigationMenuState extends State<NavigationMenu> {
       body: Row(
         children: [
           NavigationRail(
+            labelType: NavigationRailLabelType.all,
+            backgroundColor: Colors.white,
             trailing: TextButton(
               onPressed: () {
                 print("Logout");
@@ -52,11 +68,7 @@ class _NavigationMenuState extends State<NavigationMenu> {
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.edit_document),
-                label: Text("Requests"),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.calendar_month),
-                label: Text("Schedule"),
+                label: Text("Complaints"),
               ),
             ],
             selectedIndex: nav_index,

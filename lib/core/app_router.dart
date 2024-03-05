@@ -13,6 +13,8 @@ import 'package:irs_admin/views/reconciliation/schedule_meeting_page.dart';
 import 'package:irs_admin/views/reports/add_incident_page.dart';
 import 'package:irs_admin/views/reports/incident_details_page.dart';
 import 'package:irs_admin/views/reports/view_incidents_page.dart';
+import 'package:irs_admin/views/sos/sos_details_page.dart';
+import 'package:irs_admin/views/sos/view_sos_page.dart';
 import 'package:irs_admin/views/users/update_user_view.dart';
 import 'package:irs_admin/views/users/users_view.dart';
 
@@ -29,6 +31,8 @@ class AppRouter {
       GlobalKey<NavigatorState>(debugLabel: "shellDashboard");
   static final _rootNavigatorReports =
       GlobalKey<NavigatorState>(debugLabel: "shellReports");
+      static final _rootNavigatorSOS =
+      GlobalKey<NavigatorState>(debugLabel: "shellSOS");
   static final _rootNavigatorUsers =
       GlobalKey<NavigatorState>(debugLabel: "shellUsers");
   static final _rootNavigatorNews =
@@ -91,6 +95,22 @@ class AppRouter {
                     path: 'add',
                     builder: (context, state) => AddIncidentPage(),
                   ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _rootNavigatorSOS,
+            routes: [
+              GoRoute(
+                path: '/sos',
+                builder: (context, state) => ViewSosPage(),
+                routes: [
+                  GoRoute(
+                    path: 'details/:id',
+                    builder: (context, state) => SosDetailsPage(id: state.pathParameters['id'] ?? ''),
+                  ),
+                  
                 ],
               ),
             ],

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:irs_admin/core/constants.dart';
 import 'package:irs_admin/core/utilities.dart';
 import 'package:irs_admin/widgets/input_button.dart';
 
@@ -53,18 +54,29 @@ class _ViewIncidentsPageState extends State<ViewIncidentsPage> {
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
                   children: [
+                    Text(
+                      "Incidents",
+                      style: subheading,
+                    ),
+                    Text(
+                      "View incidents reported by residents here",
+                      style: regular_minor,
+                    ),
                     Align(
-                        alignment: Alignment.centerRight,
-                        child: SizedBox(
-                            width: 120,
-                            child: InputButton(
-                                label: "Add Incident",
-                                function: () {
-                                  context.go('/reports/add');
-                                },
-                                large: false))),
+                      alignment: Alignment.centerRight,
+                      child: SizedBox(
+                        width: 120,
+                        child: InputButton(
+                            label: "Add Incident",
+                            function: () {
+                              context.go('/reports/add');
+                            },
+                            large: false),
+                      ),
+                    ),
                     StreamBuilder(
                       stream: FirebaseFirestore.instance
                           .collection('incidents')
@@ -197,7 +209,7 @@ class _ViewIncidentsPageState extends State<ViewIncidentsPage> {
                           incidentList.add(incidentRow);
                         }
 
-                        return DataTable(columns: [
+                        return DataTable(headingTextStyle: regular,dividerThickness: 2,dataRowMinHeight: 44,columnSpacing: 12,columns: [
                           DataColumn(label: Text("Incident ID")),
                           DataColumn(label: Text("Title")),
                           DataColumn(label: Text("Location Address")),

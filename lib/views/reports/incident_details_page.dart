@@ -284,10 +284,11 @@ class _IncidentDetailsPageState extends State<IncidentDetailsPage> {
                           media_attachments.add(mediaWidget);
                         }
 
-                        return Padding(
-                          padding: EdgeInsets.all(16),
-                          child: SingleChildScrollView(
+                        return SingleChildScrollView(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
                             child: Column(
+                              mainAxisSize: MainAxisSize.max,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 SingleChildScrollView(
@@ -301,149 +302,185 @@ class _IncidentDetailsPageState extends State<IncidentDetailsPage> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "INCIDENT ID: ${widget.incident_id}",
-                                          style: heading,
-                                        ),
-                                        Text(
-                                          incidentDetails['title'],
-                                          style: subheading,
-                                        ),
-                                        Text(
-                                          myDate,
-                                          style: regular_minor,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "${incidentDetails['incident_tags_details']['tag_name']}",
-                                              style: regular,
-                                            ),
-                                            TextButton(
-                                              onPressed: () {
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (context) {
-                                                    return IncidentTagDialog(
-                                                      incident_id:
-                                                          widget.incident_id,
-                                                      onUpdate: () {
-                                                        setState(() {});
-                                                      },
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                              child: Text("Change"),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              incidentDetails['status'],
-                                              style: regular,
-                                            ),
-                                            TextButton(
-                                              onPressed: () {
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (context) {
-                                                    return IncidentStatusDialog(
-                                                      incident_id:
-                                                          widget.incident_id,
-                                                      onUpdate: () {
-                                                        setState(() {});
-                                                      },
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                              child: Text("Change"),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
+                                    Expanded(
+                                      flex: 1,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            incidentDetails['title'],
+                                            style: subheading,
+                                          ),
+                                          Text(
+                                            myDate,
+                                            style: regular,
+                                          ),
+                                          Text(
+                                            incidentDetails['location_address'],
+                                            style: regular_minor,
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                "${incidentDetails['incident_tags_details']['tag_name']}",
+                                                style: regular,
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (context) {
+                                                      return IncidentTagDialog(
+                                                        incident_id:
+                                                            widget.incident_id,
+                                                        onUpdate: () {
+                                                          setState(() {});
+                                                        },
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                                child: Text("Change"),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                incidentDetails['status'],
+                                                style: regular,
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (context) {
+                                                      return IncidentStatusDialog(
+                                                        incident_id:
+                                                            widget.incident_id,
+                                                        onUpdate: () {
+                                                          setState(() {});
+                                                        },
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                                child: Text("Change"),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 16,),
+                                          Row(
+                                            children: [
+                                              Container(
+                                                width: 64,
+                                                height: 64,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(64),
+                                                  color: Colors.grey,
+                                                ),
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(64),
+                                                  child: Image.network(
+                                                    incidentDetails[
+                                                            'user_details']
+                                                        ['profile_path'],
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                width:8,
+                                              ),
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "${incidentDetails['user_details']['first_name']} ${incidentDetails['user_details']['last_name']}",
+                                                    style: regular,
+                                                  ),
+                                                  Text(
+                                                    incidentDetails[
+                                                                'user_details']
+                                                            ['user_type']
+                                                        .toString()
+                                                        .toUpperCase(),
+                                                    style: regular_minor,
+                                                  ),
+                                                  Text(
+                                                    "Verified User",
+                                                    style: regular,
+                                                  ),
+                                                ],
+                                              )
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 64,
-                                          height: 64,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(64),
-                                            color: Colors.grey,
-                                          ),
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(64),
-                                            child: Image.network(
-                                              incidentDetails['user_details']
-                                                  ['profile_path'],
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 8,
-                                        ),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "${incidentDetails['user_details']['first_name']} ${incidentDetails['user_details']['last_name']}",
-                                              style: regular,
-                                            ),
-                                            Text(
-                                              incidentDetails['user_details']
-                                                      ['user_type']
-                                                  .toString()
-                                                  .toUpperCase(),
-                                              style: regular,
-                                            ),
-                                            Text(
-                                              "Verified User",
-                                              style: regular,
-                                            ),
-                                          ],
-                                        )
-                                      ],
-                                    )
+                                    Expanded(
+                                      flex: 1,
+                                      child: Container(
+                                        width: 450,
+                                        height: 250,
+                                        color: Colors.grey,
+                                        child: GoogleMap(
+                                            initialCameraPosition:
+                                                CameraPosition(
+                                                    target: LatLng(
+                                                        incidentDetails[
+                                                                'coordinates']
+                                                            ['latitude'],
+                                                        incidentDetails[
+                                                                'coordinates']
+                                                            ['longitude']),
+                                                    zoom: 18),
+                                            circles: Set.from([
+                                              Circle(
+                                                circleId:
+                                                    CircleId("customCircle"),
+                                                center: LatLng(
+                                                    incidentDetails[
+                                                            'coordinates']
+                                                        ['latitude'],
+                                                    incidentDetails[
+                                                            'coordinates']
+                                                        ['longitude']),
+                                                radius: 10, // Radius in meters
+                                                fillColor: Color.fromARGB(
+                                                        255, 243, 33, 33)
+                                                    .withOpacity(0.3),
+                                                strokeColor:
+                                                    const Color.fromARGB(
+                                                        255, 243, 33, 33),
+                                                strokeWidth: 2,
+                                              ),
+                                            ])),
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 SizedBox(
                                   height: 16,
                                 ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Details",
-                                      style: subheading,
-                                    ),
-                                    (incidentDetails['status'] == 'Verifying')
-                                        ? SizedBox(
-                                            width: 200,
-                                            child: InputButton(
-                                                label: "Verify Incident",
-                                                function: () {
-                                                  verifyIncident();
-                                                  setState(() {});
-                                                },
-                                                large: false))
-                                        : SizedBox(),
-                                  ],
-                                ),
-                                Text(
-                                  incidentDetails['details'],
-                                  style: regular,
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child:
+                                      (incidentDetails['status'] == 'Verifying')
+                                          ? SizedBox(
+                                              width: 200,
+                                              child: InputButton(
+                                                  label: "Verify Incident",
+                                                  function: () {
+                                                    verifyIncident();
+                                                    setState(() {});
+                                                  },
+                                                  large: false))
+                                          : SizedBox(),
                                 ),
                                 SizedBox(
                                   height: 16,
@@ -455,60 +492,199 @@ class _IncidentDetailsPageState extends State<IncidentDetailsPage> {
                                   children: [
                                     Expanded(
                                       flex: 1,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            width: 450,
-                                            height: 250,
-                                            color: Colors.grey,
-                                            child: GoogleMap(
-                                                initialCameraPosition:
-                                                    CameraPosition(
-                                                        target: LatLng(
-                                                            incidentDetails[
-                                                                    'coordinates']
-                                                                ['latitude'],
-                                                            incidentDetails[
-                                                                    'coordinates']
-                                                                ['longitude']),
-                                                        zoom: 18),
-                                                circles: Set.from([
-                                                  Circle(
-                                                    circleId: CircleId(
-                                                        "customCircle"),
-                                                    center: LatLng(
-                                                        incidentDetails[
-                                                                'coordinates']
-                                                            ['latitude'],
-                                                        incidentDetails[
-                                                                'coordinates']
-                                                            ['longitude']),
-                                                    radius:
-                                                        10, // Radius in meters
-                                                    fillColor: Color.fromARGB(
-                                                            255, 243, 33, 33)
-                                                        .withOpacity(0.3),
-                                                    strokeColor:
-                                                        const Color.fromARGB(
-                                                            255, 243, 33, 33),
-                                                    strokeWidth: 2,
-                                                  ),
-                                                ])),
-                                          ),
-                                          Text(
-                                            incidentDetails['location_address'],
-                                            style: regular,
-                                          ),
-                                        ],
+                                      child: SingleChildScrollView(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Details",
+                                              style: subheading,
+                                            ),
+                                            Text(
+                                              incidentDetails['details'],
+                                              style: regular,
+                                            ),
+                                            SizedBox(
+                                              height: 16,
+                                            ),
+                                            Align(
+                                              alignment: Alignment.center,
+                                              child: SizedBox(
+                                                width: 500,
+                                                child: Column(
+                                                  children: [
+                                                    Text(
+                                                      "Witnesses",
+                                                      style: subheading,
+                                                    ),
+                                                    FutureBuilder(
+                                                        future: FirebaseFirestore
+                                                            .instance
+                                                            .collection(
+                                                                'incidents')
+                                                            .doc(widget
+                                                                .incident_id)
+                                                            .collection(
+                                                                'witnesses')
+                                                            .get(),
+                                                        builder:
+                                                            (context, snapshot) {
+                                                          if (snapshot
+                                                                  .connectionState ==
+                                                              ConnectionState
+                                                                  .done) {
+                                                            if (!snapshot
+                                                                .hasData) {
+                                                              return Text(
+                                                                  "No witnesses yet");
+                                                            } else if (snapshot
+                                                                .hasError) {
+                                                              return Text(
+                                                                  "Error ${snapshot.error}");
+                                                            }
+                                                                  
+                                                            final witnesses =
+                                                                snapshot
+                                                                    .data?.docs
+                                                                    .toList();
+                                                            print(snapshot.data!);
+                                                            List<Widget>
+                                                                witnessWidgets =
+                                                                [];
+                                                                  
+                                                            for (var witness
+                                                                in witnesses!) {
+                                                              final witnessWidet =
+                                                                  Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .only(
+                                                                        top: 4,
+                                                                        bottom:
+                                                                            4),
+                                                                child: Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
+                                                                  children: [
+                                                                    FutureBuilder(
+                                                                        future: FirebaseFirestore
+                                                                            .instance
+                                                                            .collection(
+                                                                                'users')
+                                                                            .doc(witness[
+                                                                                'user_id'])
+                                                                            .get(),
+                                                                        builder:
+                                                                            (context,
+                                                                                snapshot) {
+                                                                          if (snapshot.connectionState ==
+                                                                              ConnectionState.done) {
+                                                                            if (!snapshot
+                                                                                .hasData) {
+                                                                              return Text("No witnesses yet");
+                                                                            } else if (snapshot
+                                                                                .hasError) {
+                                                                              return Text("Error ${snapshot.error}");
+                                                                            }
+                                                                            Map<String, dynamic>
+                                                                                userDetails =
+                                                                                snapshot.data!.data() as Map<String, dynamic>;
+                                                                  
+                                                                            return Row(
+                                                                              children: [
+                                                                                ClipRRect(
+                                                                                  borderRadius: BorderRadius.circular(48),
+                                                                                  child: Image.network(
+                                                                                    userDetails['profile_path'],
+                                                                                    width: 48,
+                                                                                    height: 48,
+                                                                                    fit: BoxFit.cover,
+                                                                                  ),
+                                                                                ),
+                                                                                SizedBox(
+                                                                                  width: 8,
+                                                                                ),
+                                                                                Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  children: [
+                                                                                    Text(
+                                                                                      "${userDetails['first_name']} ${userDetails['last_name']}",
+                                                                                      style: regular,
+                                                                                    ),
+                                                                                    Text(
+                                                                                      userDetails['contact_no'],
+                                                                                      style: regular_minor,
+                                                                                    ),
+                                                                                    Text(witness['details'], style: regular,),
+                                                                                  ],
+                                                                                ),
+                                                                              ],
+                                                                            );
+                                                                          } else {
+                                                                            return Center(
+                                                                              child:
+                                                                                  CircularProgressIndicator(),
+                                                                            );
+                                                                          }
+                                                                        }),
+                                                                    (!witness['media_attachment'].isEmpty) ? GestureDetector(
+                                                                      onTap: () {
+                                                                        showDialog(
+                                                                          context:
+                                                                              context,
+                                                                          builder:
+                                                                              (context) {
+                                                                            return Center(
+                                                                              child:
+                                                                                  Column(
+                                                                                mainAxisSize: MainAxisSize.min,
+                                                                                children: [
+                                                                                  SizedBox(
+                                                                                    child: Image.network(
+                                                                                      witness['media_attachment'],
+                                                                                      fit: BoxFit.contain,
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                            );
+                                                                          },
+                                                                        );
+                                                                      },
+                                                                      child: Icon(Icons.remove_red_eye),
+                                                                    ) : SizedBox(),
+                                                                  ],
+                                                                ),
+                                                              );
+                                                              witnessWidgets.add(
+                                                                  witnessWidet);
+                                                            }
+                                                            return Column(
+                                                              children:
+                                                                  witnessWidgets,
+                                                            );
+                                                          } else {
+                                                            return Center(
+                                                              child:
+                                                                  CircularProgressIndicator(),
+                                                            );
+                                                          }
+                                                        }),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                     SizedBox(
                                       width: 16,
                                     ),
                                     Expanded(
-                                      flex: 2,
+                                      flex: 1,
                                       child: Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.start,
@@ -554,7 +730,7 @@ class _IncidentDetailsPageState extends State<IncidentDetailsPage> {
                                                   return Text(
                                                       'No personnel assigned yet');
                                                 }
-
+                            
                                                 List<Map<String, dynamic>>
                                                     respondersDetails =
                                                     snapshot.data!;
@@ -585,7 +761,7 @@ class _IncidentDetailsPageState extends State<IncidentDetailsPage> {
                                                   respondersList
                                                       .add(responderWidget);
                                                 }
-
+                            
                                                 return Column(
                                                   children: respondersList,
                                                 );
@@ -601,186 +777,6 @@ class _IncidentDetailsPageState extends State<IncidentDetailsPage> {
                                       ),
                                     )
                                   ],
-                                ),
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: 500,
-                                    child: Column(
-                                      children: [
-                                        Text(
-                                          "Witnesses",
-                                          style: heading,
-                                        ),
-                                        FutureBuilder(
-                                            future: FirebaseFirestore.instance
-                                                .collection('incidents')
-                                                .doc(widget.incident_id)
-                                                .collection('witnesses')
-                                                .get(),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.done) {
-                                                if (!snapshot.hasData) {
-                                                  return Text(
-                                                      "No witnesses yet");
-                                                } else if (snapshot.hasError) {
-                                                  return Text(
-                                                      "Error ${snapshot.error}");
-                                                }
-
-                                                final witnesses = snapshot
-                                                    .data?.docs
-                                                    .toList();
-                                                print(snapshot.data!);
-                                                List<Widget> witnessWidgets =
-                                                    [];
-
-                                                for (var witness
-                                                    in witnesses!) {
-                                                  final witnessWidet = Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            top: 4, bottom: 4),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        FutureBuilder(
-                                                            future: FirebaseFirestore
-                                                                .instance
-                                                                .collection(
-                                                                    'users')
-                                                                .doc(witness[
-                                                                    'user_id'])
-                                                                .get(),
-                                                            builder: (context,
-                                                                snapshot) {
-                                                              if (snapshot
-                                                                      .connectionState ==
-                                                                  ConnectionState
-                                                                      .done) {
-                                                                if (!snapshot
-                                                                    .hasData) {
-                                                                  return Text(
-                                                                      "No witnesses yet");
-                                                                } else if (snapshot
-                                                                    .hasError) {
-                                                                  return Text(
-                                                                      "Error ${snapshot.error}");
-                                                                }
-                                                                Map<String,
-                                                                        dynamic>
-                                                                    userDetails =
-                                                                    snapshot.data!
-                                                                            .data()
-                                                                        as Map<
-                                                                            String,
-                                                                            dynamic>;
-
-                                                                return Row(
-                                                                  children: [
-                                                                    ClipRRect(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              48),
-                                                                      child: Image
-                                                                          .network(
-                                                                        userDetails[
-                                                                            'profile_path'],
-                                                                        width:
-                                                                            48,
-                                                                        height:
-                                                                            48,
-                                                                        fit: BoxFit
-                                                                            .cover,
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(
-                                                                      width: 8,
-                                                                    ),
-                                                                    Column(
-                                                                      crossAxisAlignment:
-                                                                          CrossAxisAlignment
-                                                                              .start,
-                                                                      children: [
-                                                                        Text(
-                                                                          "${userDetails['first_name']} ${userDetails['last_name']}",
-                                                                          style:
-                                                                              regular,
-                                                                        ),
-                                                                        Text(
-                                                                          userDetails[
-                                                                              'contact_no'],
-                                                                          style:
-                                                                              regular_minor,
-                                                                        )
-                                                                      ],
-                                                                    ),
-                                                                  ],
-                                                                );
-                                                              } else {
-                                                                return Center(
-                                                                  child:
-                                                                      CircularProgressIndicator(),
-                                                                );
-                                                              }
-                                                            }),
-                                                        GestureDetector(
-                                                          onTap: () {
-                                                            showDialog(
-                                                              context: context,
-                                                              builder:
-                                                                  (context) {
-                                                                return Center(
-                                                                  child: Column(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .min,
-                                                                    children: [
-                                                                      SizedBox(
-                                                                        child: Image
-                                                                            .network(
-                                                                          witness[
-                                                                              'media_attachment'],
-                                                                          fit: BoxFit
-                                                                              .contain,
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                );
-                                                              },
-                                                            );
-                                                          },
-                                                          child: Image.network(
-                                                            witness[
-                                                                'media_attachment'],
-                                                            width: 64,
-                                                            height: 64,
-                                                            fit: BoxFit.cover,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  );
-                                                  witnessWidgets
-                                                      .add(witnessWidet);
-                                                }
-                                                return Column(
-                                                  children: witnessWidgets,
-                                                );
-                                              } else {
-                                                return Center(
-                                                  child:
-                                                      CircularProgressIndicator(),
-                                                );
-                                              }
-                                            }),
-                                      ],
-                                    ),
-                                  ),
                                 ),
                               ],
                             ),
@@ -940,71 +936,81 @@ class _LiveStatusContainerState extends State<LiveStatusContainer> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(16),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Incident Live Status",
-              style: subheading,
-            ),
-            FutureBuilder(
-              future: fetchUserDefinedStatuses(),
-              builder: (context, snapshot) {
-                List<Widget> statusButtons = [];
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) {
-                    return Text("${snapshot.error}");
-                  }
-                  List<String> userDefinedStatuses = snapshot.data!;
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Flexible(
+            flex: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Incident Live Status",
+                  style: subheading,
+                ),
+                FutureBuilder(
+                  future: fetchUserDefinedStatuses(),
+                  builder: (context, snapshot) {
+                    List<Widget> statusButtons = [];
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (snapshot.hasError) {
+                        return Text("${snapshot.error}");
+                      }
+                      List<String> userDefinedStatuses = snapshot.data!;
 
-                  userDefinedStatuses.forEach((element) {
-                    final statusButton = Row(
-                      children: [
+                      userDefinedStatuses.forEach((element) {
+                        final statusButton = Row(
+                          children: [
+                            OutlinedButton(
+                              onPressed: () {
+                                _incidentStatusController.text = element;
+                              },
+                              child: Text(element),
+                            ),
+                            SizedBox(
+                              width: 8,
+                            ),
+                          ],
+                        );
+                        statusButtons.add(statusButton);
+                      });
+                      statusButtons.add(
                         OutlinedButton(
                           onPressed: () {
-                            _incidentStatusController.text = element;
-                          },
-                          child: Text(element),
-                        ),
-                        SizedBox(
-                          width: 8,
-                        ),
-                      ],
-                    );
-                    statusButtons.add(statusButton);
-                  });
-                  statusButtons.add(
-                    OutlinedButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AddStatusDialog(
-                              onAdd: () {
-                                setState(() {});
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AddStatusDialog(
+                                  onAdd: () {
+                                    setState(() {});
+                                  },
+                                );
                               },
                             );
                           },
-                        );
-                      },
-                      child: Icon(Icons.add),
-                    ),
-                  );
-                  return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: statusButtons,
-                      ));
-                } else {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-              },
+                          child: Icon(Icons.add),
+                        ),
+                      );
+                      return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: statusButtons,
+                          ));
+                    } else {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                  },
+                ),
+              ],
             ),
-            StreamBuilder(
+          ),
+          Flexible(
+            flex: 2,
+            child: StreamBuilder(
               stream: FirebaseFirestore.instance
                   .collection('incidents')
                   .doc(widget.incident_id)
@@ -1103,45 +1109,52 @@ class _LiveStatusContainerState extends State<LiveStatusContainer> {
                   statusUpdates.add(statusWidget);
                 }
                 return SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
                   child: Column(
                     children: statusUpdates,
                   ),
                 );
               },
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          ),
+          Flexible(
+            flex: 1,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Expanded(
-                    flex: 2,
-                    child: InputField(
-                        placeholder: "Type incident status here...",
-                        inputType: "text",
-                        controller: _incidentStatusController)),
+                  flex: 3,
+                  child: InputField(
+                      placeholder: "Type incident status here...",
+                      inputType: "text",
+                      controller: _incidentStatusController,),
+                ),
                 SizedBox(
                   width: 8,
                 ),
                 Expanded(
                   flex: 1,
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 24, bottom: 4),
+                    padding: const EdgeInsets.only(bottom: 16.0),
                     child: InputButton(
-                        label: "UPDATE",
-                        function: () {
-                          addLiveStatusToIncident(widget.incident_id,
-                              _incidentStatusController.text.trim());
-
-                          setState(() {
-                            _incidentStatusController.text == "";
-                          });
-                        },
-                        large: false),
+                      label: "UPDATE",
+                      function: () {
+                        addLiveStatusToIncident(widget.incident_id,
+                            _incidentStatusController.text.trim());
+                    
+                        setState(() {
+                          _incidentStatusController.text == "";
+                        });
+                      },
+                      large: true,
+                    ),
                   ),
                 ),
               ],
-            )
-          ],
-        ),
+            ),
+          )
+        ],
       ),
     );
   }
@@ -1402,36 +1415,36 @@ class _IncidentTagDialogState extends State<IncidentTagDialog> {
 
   Future<void> addIncidentTag(String tagName, String description) async {
     try {
-    // Reference to the 'incident_tags' collection
-    CollectionReference incidentTagsCollection =
-        FirebaseFirestore.instance.collection('incident_tags');
+      // Reference to the 'incident_tags' collection
+      CollectionReference incidentTagsCollection =
+          FirebaseFirestore.instance.collection('incident_tags');
 
-    // Check if the tag name already exists in the collection
-    QuerySnapshot existingTagsSnapshot =
-        await incidentTagsCollection.where('tag_name', isEqualTo: tagName).get();
+      // Check if the tag name already exists in the collection
+      QuerySnapshot existingTagsSnapshot = await incidentTagsCollection
+          .where('tag_name', isEqualTo: tagName)
+          .get();
 
-    if (existingTagsSnapshot.docs.isNotEmpty) {
-      // Tag name already exists
-      Utilities.showSnackBar("This tag already exists", Colors.red);
-      return;
-      
-    } else {
-      // Tag name does not exist, add a new incident tag
-      DocumentReference newDocRef = await incidentTagsCollection.add({
-        'tag_name': tagName,
-        'priority': "Low",
-        // Add more fields as needed
-      });
+      if (existingTagsSnapshot.docs.isNotEmpty) {
+        // Tag name already exists
+        Utilities.showSnackBar("This tag already exists", Colors.red);
+        return;
+      } else {
+        // Tag name does not exist, add a new incident tag
+        DocumentReference newDocRef = await incidentTagsCollection.add({
+          'tag_name': tagName,
+          'priority': "Low",
+          // Add more fields as needed
+        });
 
-      await updateIncidentTag(widget.incident_id, newDocRef.id);
+        await updateIncidentTag(widget.incident_id, newDocRef.id);
 
-      print('Incident tag added successfully');
-      Utilities.showSnackBar("Tag added successfully", Colors.green);
+        print('Incident tag added successfully');
+        Utilities.showSnackBar("Tag added successfully", Colors.green);
+      }
+    } catch (error) {
+      print('Error adding or updating incident tag: $error');
+      throw error; // Propagate the error if needed
     }
-  } catch (error) {
-    print('Error adding or updating incident tag: $error');
-    throw error; // Propagate the error if needed
-  }
   }
 
   Future<void> updateIncidentTag(String incident_id, String newTagName) async {
@@ -1888,7 +1901,7 @@ class _AssignedTanodContainerState extends State<AssignedTanodContainer> {
             child: Container(
               width: 48,
               height: 48,
-              color: Colors.red,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: Colors.red,),
               child: Icon(
                 Icons.delete,
                 color: Colors.white,
@@ -1923,25 +1936,24 @@ class _AddStatusDialogState extends State<AddStatusDialog> {
           FirebaseFirestore.instance.collection('user_defined_statuses');
 
       QuerySnapshot existingStatusSnapshot = await statusesCollection
-        .where('status_content', isEqualTo: _statusController.text.trim())
-        .get();
+          .where('status_content', isEqualTo: _statusController.text.trim())
+          .get();
 
-    if (existingStatusSnapshot.docs.isNotEmpty) {
-      // Status content already exists, show a snackbar
-            Utilities.showSnackBar(
-          "Tag is already existing", Colors.red);
-          return;
-    } else {
-      // Status content does not exist, add a new user-defined status
-      await statusesCollection.add({
-        'status_content': _statusController.text.trim(),
-        // Add more fields as needed
-      });
+      if (existingStatusSnapshot.docs.isNotEmpty) {
+        // Status content already exists, show a snackbar
+        Utilities.showSnackBar("Tag is already existing", Colors.red);
+        return;
+      } else {
+        // Status content does not exist, add a new user-defined status
+        await statusesCollection.add({
+          'status_content': _statusController.text.trim(),
+          // Add more fields as needed
+        });
 
-      print('User-defined status added successfully.');
-      Utilities.showSnackBar(
-          "User-defined status added successfully", Colors.green);
-    }
+        print('User-defined status added successfully.');
+        Utilities.showSnackBar(
+            "User-defined status added successfully", Colors.green);
+      }
     } catch (error) {
       print('Error adding user-defined status: $error');
       throw error; // Propagate the error if needed

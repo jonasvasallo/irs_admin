@@ -40,7 +40,9 @@ class _NavigationMenuState extends State<NavigationMenu> {
       body: Row(
         children: [
           NavigationRail(
-            labelType: NavigationRailLabelType.all,
+            useIndicator: true,
+            extended: true,
+            labelType: NavigationRailLabelType.none,
             backgroundColor: Colors.white,
             trailing: TextButton(
               onPressed: () {
@@ -58,7 +60,11 @@ class _NavigationMenuState extends State<NavigationMenu> {
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.report),
-                label: Text("Reports"),
+                label: Text("Incidents"),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.sos),
+                label: Text("Emergencies"),
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.person),

@@ -291,28 +291,31 @@ class _UpdateUserViewState extends State<UpdateUserView> {
                               ),
                             ],
                           ),
-                          (_dropdownValue != 'admin') ? DropdownMenu(
-                            width: 500,
-                            onSelected: (value) {
-                              setState(() {
-                                if (value is String) {
-                                  _dropdownValue = value;
-                                }
-                              });
-                            },
-                            dropdownMenuEntries: <DropdownMenuEntry<String>>[
-                              DropdownMenuEntry(
-                                value: "resident",
-                                label: "Resident",
-                              ),
-                              DropdownMenuEntry(
-                                value: "tanod",
-                                label: "Tanod",
-                              ),
-                            ],
-                            initialSelection: _dropdownValue,
-                            menuStyle: MenuStyle(),
-                          ) : SizedBox(),
+                          (_dropdownValue != 'admin')
+                              ? DropdownMenu(
+                                  width: 500,
+                                  onSelected: (value) {
+                                    setState(() {
+                                      if (value is String) {
+                                        _dropdownValue = value;
+                                      }
+                                    });
+                                  },
+                                  dropdownMenuEntries: <DropdownMenuEntry<
+                                      String>>[
+                                    DropdownMenuEntry(
+                                      value: "resident",
+                                      label: "Resident",
+                                    ),
+                                    DropdownMenuEntry(
+                                      value: "tanod",
+                                      label: "Tanod",
+                                    ),
+                                  ],
+                                  initialSelection: _dropdownValue,
+                                  menuStyle: MenuStyle(),
+                                )
+                              : SizedBox(),
                           SizedBox(
                             height: 8,
                           ),
@@ -399,15 +402,14 @@ class _VerifyUserDialogState extends State<VerifyUserDialog> {
 
   void rejectVerification(String reason) async {
     try {
-
       CollectionReference userRef = await FirebaseFirestore.instance
           .collection('users')
-          .doc(widget.user_id).collection('notifications');
+          .doc(widget.user_id)
+          .collection('notifications');
 
-      
       await userRef.add({
-        'content' : "Verification rejected. Reason: $reason",
-        'timestamp' : FieldValue.serverTimestamp(),
+        'content': "Verification rejected. Reason: $reason",
+        'timestamp': FieldValue.serverTimestamp(),
       });
 
       Utilities.showSnackBar("Verification rejected", Colors.green);
@@ -419,6 +421,7 @@ class _VerifyUserDialogState extends State<VerifyUserDialog> {
 
     Navigator.of(context, rootNavigator: true).pop();
   }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -505,14 +508,17 @@ class _VerifyUserDialogState extends State<VerifyUserDialog> {
                                   Navigator.of(context).pop();
                                 },
                                 child: Text("Cancel")),
-                            TextButton(onPressed: () {
-                              if(_reasonController.text.isEmpty){
-                                Utilities.showSnackBar("Please provide a reason", Colors.red);
-                                return;
-                              }
-                              rejectVerification(_reasonController.text.trim());
-
-                            }, child: Text("Submit")),
+                            TextButton(
+                                onPressed: () {
+                                  if (_reasonController.text.isEmpty) {
+                                    Utilities.showSnackBar(
+                                        "Please provide a reason", Colors.red);
+                                    return;
+                                  }
+                                  rejectVerification(
+                                      _reasonController.text.trim());
+                                },
+                                child: Text("Submit")),
                           ],
                         );
                       },

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
@@ -43,7 +44,8 @@ class _NavigationMenuState extends State<NavigationMenu> {
             backgroundColor: Colors.white,
             trailing: TextButton(
               onPressed: () {
-                print("Logout");
+                FirebaseAuth.instance.signOut();
+                context.go('/login');
               },
               child: Icon(
                 Icons.logout,

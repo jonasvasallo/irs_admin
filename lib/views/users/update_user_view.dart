@@ -291,7 +291,7 @@ class _UpdateUserViewState extends State<UpdateUserView> {
                               ),
                             ],
                           ),
-                          DropdownMenu(
+                          (_dropdownValue != 'admin') ? DropdownMenu(
                             width: 500,
                             onSelected: (value) {
                               setState(() {
@@ -312,7 +312,7 @@ class _UpdateUserViewState extends State<UpdateUserView> {
                             ],
                             initialSelection: _dropdownValue,
                             menuStyle: MenuStyle(),
-                          ),
+                          ) : SizedBox(),
                           SizedBox(
                             height: 8,
                           ),

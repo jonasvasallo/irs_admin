@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:irs_admin/core/constants.dart';
@@ -36,80 +37,76 @@ class _UsersViewState extends State<UsersView> {
               length: 2,
               child: Column(
                 children: [
-                  TabBar(
-                    isScrollable: false,
-                    indicatorColor: Colors.blue,
-                    unselectedLabelColor: minorText,
-                    labelColor: Colors.blue,
-                    tabs: [
-                      Tab(
-                        text: "User",
-                      ),
-                      Tab(
-                        text: "Resident",
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        StreamBuilder(
-                            stream: FirebaseFirestore.instance
-                                .collection('users')
-                                .snapshots(),
-                            builder: (context, snapshot) {
-                              List<DataRow> userList = [];
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              }
+                  StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection('users')
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        List<DataRow> userList = [];
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
 
-                              if (snapshot.hasError) {
-                                return Text("Error: ${snapshot.error}");
-                              }
+                        if (snapshot.hasError) {
+                          return Text("Error: ${snapshot.error}");
+                        }
 
-                              if (!snapshot.hasData) {
-                                return Text("No data available");
-                              }
-                              final users = snapshot.data?.docs.toList();
+                        if (!snapshot.hasData) {
+                          return Text("No data available");
+                        }
+                        final users = snapshot.data?.docs.toList();
 
-                              for (var user in users!) {
-                                final userRow = DataRow(
-                                  cells: [
-                                    DataCell(Text(user.id)),
-                                    DataCell(Text(user['user_type']
-                                        .toString()
-                                        .toUpperCase())),
-                                    DataCell(SizedBox(width: 24, height: 24, child: Image.network(user['profile_path'], fit: BoxFit.cover,),),),
-                                    DataCell(Text(
-                                        "${user['first_name']} ${user['middle_name']} ${user['last_name']}")),
-                                    DataCell(Text(user['gender'])),
-                                    DataCell(Text(user['birthday'])),
-                                    DataCell(Text(user['verified'].toString())),
-                                    DataCell(
-                                      Row(
-                                        children: [
-                                          TextButton(
-                                            onPressed: () {
-                                              context.go(
-                                                  '/users/update/${user.id}');
-                                            },
-                                            child: Icon(
-                                              Icons.edit,
-                                              color: Colors.green,
-                                            ),
-                                          ),
-                                          TextButton(
+                        for (var user in users!) {
+                          Map<String, dynamic> userDetail = user.data();
+                          var disabled = userDetail['disabled'] ?? false;
+                          if(userDetail['user_type'] == 'admin'){
+                            continue;
+                          }
+                          final userRow = DataRow(
+                            cells: [
+                              DataCell(Text(user.id)),
+                              DataCell(Text(
+                                  user['user_type'].toString().toUpperCase())),
+                              DataCell(
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Image.network(
+                                    user['profile_path'],
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              DataCell(Text(
+                                  "${user['first_name']} ${user['middle_name']} ${user['last_name']}")),
+                              DataCell(Text(user['gender'])),
+                              DataCell(Text(user['birthday'])),
+                              DataCell(Text(user['verified'].toString())),
+                              DataCell(
+                                Row(
+                                  children: [
+                                    TextButton(
+                                      onPressed: () {
+                                        context.go('/users/update/${user.id}');
+                                      },
+                                      child: Icon(
+                                        Icons.edit,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                    (!disabled)
+                                        ? TextButton(
                                             onPressed: () {
                                               showDialog(
                                                 context: context,
                                                 builder: (context) {
                                                   return AlertDialog(
-                                                    title: Text("Delete User"),
+                                                    title: Text("Disable User"),
                                                     content: Text(
-                                                        "Are you sure you want to delete this user? This action cannot be reverted."),
+                                                        "Are you sure you want to disable this user?"),
                                                     actions: [
                                                       TextButton(
                                                         onPressed: () {
@@ -119,7 +116,47 @@ class _UsersViewState extends State<UsersView> {
                                                         child: Text("Cancel"),
                                                       ),
                                                       TextButton(
-                                                        onPressed: () {},
+                                                        onPressed: () async {
+                                                          try {
+                                                            DocumentReference
+                                                                userRef =
+                                                                FirebaseFirestore
+                                                                    .instance
+                                                                    .collection(
+                                                                        'users')
+                                                                    .doc(
+                                                                        user.id);
+
+// Check if the 'disabled' field exists before updating
+                                                            DocumentSnapshot
+                                                                userSnapshot =
+                                                                await userRef
+                                                                    .get();
+                                                            if (!userSnapshot
+                                                                    .exists ||
+                                                                (userSnapshot.data() as Map<String, dynamic>?)!['disabled'] == null) {
+                                                              // 'disabled' field does not exist or is null, set it to false
+                                                              await userRef.set(
+                                                                  {
+                                                                    'disabled':
+                                                                        true
+                                                                  },
+                                                                  SetOptions(
+                                                                      merge:
+                                                                          true));
+                                                            } else {
+                                                              // 'disabled' field exists, update it to true
+                                                              await userRef
+                                                                  .update({
+                                                                'disabled': true
+                                                              });
+                                                            }
+                                                          } catch (ex) {
+                                                            print(ex);
+                                                          }
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
                                                         child: Text("Yes"),
                                                       ),
                                                     ],
@@ -128,255 +165,334 @@ class _UsersViewState extends State<UsersView> {
                                               );
                                             },
                                             child: Icon(
-                                              Icons.delete,
+                                              Icons.do_not_disturb,
                                               color: Colors.red,
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                );
-
-                                userList.add(userRow);
-                              }
-
-                              return SingleChildScrollView(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          FilledButton.icon(
-                                            onPressed: () {},
-                                            icon: Icon(Icons.search),
-                                            label: Text("Search"),
-                                          ),
-                                          OutlinedButton(
+                                          )
+                                        : TextButton(
                                             onPressed: () {
                                               showDialog(
                                                 context: context,
                                                 builder: (context) {
-                                                  return AddUserAlert();
+                                                  return AlertDialog(
+                                                    title:
+                                                        Text("Re-enable User"),
+                                                    content: Text(
+                                                        "Are you sure you want to re-enable this user?"),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                        child: Text("Cancel"),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () async{
+                                                          try {
+                                                            DocumentReference
+                                                                userRef =
+                                                                FirebaseFirestore
+                                                                    .instance
+                                                                    .collection(
+                                                                        'users')
+                                                                    .doc(
+                                                                        user.id);
+
+// Check if the 'disabled' field exists before updating
+                                                            DocumentSnapshot
+                                                                userSnapshot =
+                                                                await userRef
+                                                                    .get();
+                                                            if (!userSnapshot
+                                                                    .exists ||
+                                                                (userSnapshot.data() as Map<String, dynamic>?)!['disabled'] == null) {
+                                                              // 'disabled' field does not exist or is null, set it to false
+                                                              await userRef.set(
+                                                                  {
+                                                                    'disabled':
+                                                                        false
+                                                                  },
+                                                                  SetOptions(
+                                                                      merge:
+                                                                          true));
+                                                            } else {
+                                                              // 'disabled' field exists, update it to true
+                                                              await userRef
+                                                                  .update({
+                                                                'disabled': false
+                                                              });
+                                                            }
+                                                          } catch (ex) {}
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                        child: Text("Yes"),
+                                                      ),
+                                                    ],
+                                                  );
                                                 },
                                               );
                                             },
-                                            child: Text("Add User"),
+                                            child: Icon(
+                                              Icons.person_add,
+                                              color: Colors.amber,
+                                            ),
                                           ),
-                                        ],
-                                      ),
-                                      DataTable(
-                                        sortColumnIndex: 4,
-                                        sortAscending: true,
-                                        columns: [
-                                          DataColumn(
-                                            label: Text("UID"),
-                                          ),
-                                          DataColumn(
-                                            label: Text("User Type"),
-                                          ),
-                                          DataColumn(label: Text("Profile"),),
-                                          DataColumn(
-                                            label: Text("Full Name"),
-                                          ),
-                                          DataColumn(
-                                            label: Text("Sex"),
-                                          ),
-                                          DataColumn(
-                                            label: Text("Birth Date"),
-                                          ),
-                                          DataColumn(
-                                            label: Text("Verified"),
-                                          ),
-                                          DataColumn(
-                                            label: Text("Action"),
-                                          ),
-                                        ],
-                                        rows: userList,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }),
-                        StreamBuilder(
-                          stream: FirebaseFirestore.instance
-                              .collection('residents')
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            List<DataRow> residentList = [];
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-
-                            if (snapshot.hasError) {
-                              return Text("Error: ${snapshot.error}");
-                            }
-
-                            if (!snapshot.hasData) {
-                              return Text("No data available");
-                            }
-                            final users = snapshot.data?.docs.toList();
-
-                            for (var user in users!) {
-                              final userRow = DataRow(
-                                cells: [
-                                  DataCell(Text(user.id)),
-                                  DataCell(Text(
-                                      "${user['first_name']} ${user['middle_name']} ${user['last_name']}")),
-                                  DataCell(Text(user['gender'])),
-                                  DataCell(Text(user['birthday'])),
-                                  DataCell(Text(user['contact_no'])),
-                                  DataCell(Text(
-                                      "${user['address_house']} ${user['address_street']}, Tambubong, San Rafael, Bulacan")),
-                                  DataCell(
-                                    Row(
-                                      children: [
-                                        TextButton(
-                                          onPressed: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return UpdateResidentAlert(
-                                                    resident_id: user.id);
-                                              },
-                                            );
-                                          },
-                                          child: Icon(
-                                            Icons.edit,
-                                            color: Colors.green,
-                                          ),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return AlertDialog(
-                                                  title: Text("Delete User"),
-                                                  content: Text(
-                                                      "Are you sure you want to delete this resident? This action cannot be reverted."),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                      child: Text("Cancel"),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        DatabaseModel
-                                                            .deleteDocumentFromCollection(
-                                                          user.id,
-                                                          "residents",
-                                                        );
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                      child: Text("Yes"),
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          },
-                                          child: Icon(
-                                            Icons.delete,
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              );
-
-                              residentList.add(userRow);
-                            }
-                            return SingleChildScrollView(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        FilledButton.icon(
-                                          onPressed: () {},
-                                          icon: Icon(Icons.search),
-                                          label: Text("Search"),
-                                        ),
-                                        OutlinedButton(
-                                          onPressed: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return AddResidentAlert();
-                                              },
-                                            );
-                                          },
-                                          child: Text("Add User"),
-                                        ),
-                                      ],
-                                    ),
-                                    DataTable(
-                                      sortColumnIndex: 4,
-                                      sortAscending: true,
-                                      columns: [
-                                        DataColumn(
-                                          label: Text("Resident ID"),
-                                        ),
-                                        DataColumn(
-                                          label: Text("Full Name"),
-                                        ),
-                                        DataColumn(
-                                          label: Text("Sex"),
-                                        ),
-                                        DataColumn(
-                                          label: Text("Birth Date"),
-                                        ),
-                                        DataColumn(
-                                          label: Text("Phone Number"),
-                                        ),
-                                        DataColumn(
-                                          label: Text("Address"),
-                                        ),
-                                        DataColumn(
-                                          label: Text("Action"),
-                                        ),
-                                      ],
-                                      rows: residentList,
-                                    ),
                                   ],
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                        // Center(
-                        //   child: OutlinedButton(
-                        //     onPressed: () {
-                        //       showDialog(
-                        //         context: context,
-                        //         builder: (context) {
-                        //           return AddResidentAlert();
-                        //         },
-                        //       );
-                        //     },
-                        //     child: Text("Add User"),
-                        //   ),
-                        // ),
-                      ],
-                    ),
-                  ),
+                            ],
+                          );
+
+                          userList.add(userRow);
+                        }
+
+                        return SingleChildScrollView(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                OutlinedButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AddUserAlert();
+                                      },
+                                    );
+                                  },
+                                  child: Text("Add User"),
+                                ),
+                                DataTable(
+                                  sortColumnIndex: 4,
+                                  sortAscending: true,
+                                  columns: [
+                                    DataColumn(
+                                      label: Text("UID"),
+                                    ),
+                                    DataColumn(
+                                      label: Text("User Type"),
+                                    ),
+                                    DataColumn(
+                                      label: Text("Profile"),
+                                    ),
+                                    DataColumn(
+                                      label: Text("Full Name"),
+                                    ),
+                                    DataColumn(
+                                      label: Text("Sex"),
+                                    ),
+                                    DataColumn(
+                                      label: Text("Birth Date"),
+                                    ),
+                                    DataColumn(
+                                      label: Text("Verified"),
+                                    ),
+                                    DataColumn(
+                                      label: Text("Action"),
+                                    ),
+                                  ],
+                                  rows: userList,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                  // TabBar(
+                  //   isScrollable: false,
+                  //   indicatorColor: Colors.blue,
+                  //   unselectedLabelColor: minorText,
+                  //   labelColor: Colors.blue,
+                  //   tabs: [
+                  //     Tab(
+                  //       text: "User",
+                  //     ),
+                  //     Tab(
+                  //       text: "Resident",
+                  //     ),
+                  //   ],
+                  // ),
+                  // Expanded(
+                  //   child: TabBarView(
+                  //     children: [
+
+                  //       StreamBuilder(
+                  //         stream: FirebaseFirestore.instance
+                  //             .collection('residents')
+                  //             .snapshots(),
+                  //         builder: (context, snapshot) {
+                  //           List<DataRow> residentList = [];
+                  //           if (snapshot.connectionState ==
+                  //               ConnectionState.waiting) {
+                  //             return Center(
+                  //               child: CircularProgressIndicator(),
+                  //             );
+                  //           }
+
+                  //           if (snapshot.hasError) {
+                  //             return Text("Error: ${snapshot.error}");
+                  //           }
+
+                  //           if (!snapshot.hasData) {
+                  //             return Text("No data available");
+                  //           }
+                  //           final users = snapshot.data?.docs.toList();
+
+                  //           for (var user in users!) {
+                  //             final userRow = DataRow(
+                  //               cells: [
+                  //                 DataCell(Text(user.id)),
+                  //                 DataCell(Text(
+                  //                     "${user['first_name']} ${user['middle_name']} ${user['last_name']}")),
+                  //                 DataCell(Text(user['gender'])),
+                  //                 DataCell(Text(user['birthday'])),
+                  //                 DataCell(Text(user['contact_no'])),
+                  //                 DataCell(Text(
+                  //                     "${user['address_house']} ${user['address_street']}, Tambubong, San Rafael, Bulacan")),
+                  //                 DataCell(
+                  //                   Row(
+                  //                     children: [
+                  //                       TextButton(
+                  //                         onPressed: () {
+                  //                           showDialog(
+                  //                             context: context,
+                  //                             builder: (context) {
+                  //                               return UpdateResidentAlert(
+                  //                                   resident_id: user.id);
+                  //                             },
+                  //                           );
+                  //                         },
+                  //                         child: Icon(
+                  //                           Icons.edit,
+                  //                           color: Colors.green,
+                  //                         ),
+                  //                       ),
+                  //                       TextButton(
+                  //                         onPressed: () {
+                  //                           showDialog(
+                  //                             context: context,
+                  //                             builder: (context) {
+                  //                               return AlertDialog(
+                  //                                 title: Text("Delete User"),
+                  //                                 content: Text(
+                  //                                     "Are you sure you want to delete this resident? This action cannot be reverted."),
+                  //                                 actions: [
+                  //                                   TextButton(
+                  //                                     onPressed: () {
+                  //                                       Navigator.of(context)
+                  //                                           .pop();
+                  //                                     },
+                  //                                     child: Text("Cancel"),
+                  //                                   ),
+                  //                                   TextButton(
+                  //                                     onPressed: () {
+                  //                                       DatabaseModel
+                  //                                           .deleteDocumentFromCollection(
+                  //                                         user.id,
+                  //                                         "residents",
+                  //                                       );
+                  //                                       Navigator.of(context)
+                  //                                           .pop();
+                  //                                     },
+                  //                                     child: Text("Yes"),
+                  //                                   ),
+                  //                                 ],
+                  //                               );
+                  //                             },
+                  //                           );
+                  //                         },
+                  //                         child: Icon(
+                  //                           Icons.delete,
+                  //                           color: Colors.red,
+                  //                         ),
+                  //                       ),
+                  //                     ],
+                  //                   ),
+                  //                 ),
+                  //               ],
+                  //             );
+
+                  //             residentList.add(userRow);
+                  //           }
+                  //           return SingleChildScrollView(
+                  //             child: Padding(
+                  //               padding: const EdgeInsets.all(8.0),
+                  //               child: Column(
+                  //                 children: [
+                  //                   Row(
+                  //                     mainAxisAlignment:
+                  //                         MainAxisAlignment.spaceBetween,
+                  //                     children: [
+                  //                       FilledButton.icon(
+                  //                         onPressed: () {},
+                  //                         icon: Icon(Icons.search),
+                  //                         label: Text("Search"),
+                  //                       ),
+                  //                       OutlinedButton(
+                  //                         onPressed: () {
+                  //                           showDialog(
+                  //                             context: context,
+                  //                             builder: (context) {
+                  //                               return AddResidentAlert();
+                  //                             },
+                  //                           );
+                  //                         },
+                  //                         child: Text("Add User"),
+                  //                       ),
+                  //                     ],
+                  //                   ),
+                  //                   DataTable(
+                  //                     sortColumnIndex: 4,
+                  //                     sortAscending: true,
+                  //                     columns: [
+                  //                       DataColumn(
+                  //                         label: Text("Resident ID"),
+                  //                       ),
+                  //                       DataColumn(
+                  //                         label: Text("Full Name"),
+                  //                       ),
+                  //                       DataColumn(
+                  //                         label: Text("Sex"),
+                  //                       ),
+                  //                       DataColumn(
+                  //                         label: Text("Birth Date"),
+                  //                       ),
+                  //                       DataColumn(
+                  //                         label: Text("Phone Number"),
+                  //                       ),
+                  //                       DataColumn(
+                  //                         label: Text("Address"),
+                  //                       ),
+                  //                       DataColumn(
+                  //                         label: Text("Action"),
+                  //                       ),
+                  //                     ],
+                  //                     rows: residentList,
+                  //                   ),
+                  //                 ],
+                  //               ),
+                  //             ),
+                  //           );
+                  //         },
+                  //       ),
+                  //       // Center(
+                  //       //   child: OutlinedButton(
+                  //       //     onPressed: () {
+                  //       //       showDialog(
+                  //       //         context: context,
+                  //       //         builder: (context) {
+                  //       //           return AddResidentAlert();
+                  //       //         },
+                  //       //       );
+                  //       //     },
+                  //       //     child: Text("Add User"),
+                  //       //   ),
+                  //       // ),
+                  //     ],
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -888,16 +1004,25 @@ class _AddUserAlertState extends State<AddUserAlert> {
       return;
     }
 
+    FirebaseApp secondaryApp = await Firebase.initializeApp(
+      name: 'Second App',
+      options: Firebase.app().options,
+    );
+
     try {
       // Get a reference to the Firestore collection
       CollectionReference collectionReference =
-          FirebaseFirestore.instance.collection("users");
+          FirebaseFirestore.instanceFor(app: secondaryApp).collection("users");
 
       UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          await FirebaseAuth.instanceFor(app: secondaryApp)
+              .createUserWithEmailAndPassword(
         email: _emailAddressController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      if (userCredential.user == null)
+        throw 'An error occured. Please try again.';
 
       String userId = userCredential.user?.uid ?? '';
 
@@ -922,10 +1047,12 @@ class _AddUserAlertState extends State<AddUserAlert> {
 
       print('Document added successfully');
       Utilities.showSnackBar("User added successfully.", Colors.green);
+      print(FirebaseAuth.instance.currentUser?.uid);
     } catch (e) {
       print('Error adding document: $e');
       Utilities.showSnackBar("Error adding document: $e", Colors.red);
     }
+    await secondaryApp.delete();
 
     Navigator.of(context).pop();
   }

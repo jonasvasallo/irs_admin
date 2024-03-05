@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -269,69 +270,15 @@ class _AddIncidentPageState extends State<AddIncidentPage> {
                             label: "Details",
                             validator: InputValidator.requiredValidator,
                           ),
-                          
                           SizedBox(
                             height: 16,
                           ),
-                          Row(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 16),
-                                child: FutureBuilder(
-                                  future: getIncidentTags(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      // Data is still loading
-                                      return CircularProgressIndicator();
-                                    } else if (snapshot.hasError) {
-                                      // Error occurred while fetching data
-                                      return Text('Error: ${snapshot.error}');
-                                    } else if (!snapshot.hasData ||
-                                        snapshot.data!.isEmpty) {
-                                      // No data available
-                                      return Text('No incident tags found.');
-                                    } else {
-                                      // Data has been successfully fetched
-                                      List<Map<String, dynamic>> incidentTags =
-                                          snapshot.data!;
-
-                                      return DropdownMenu(
-                                        hintText: "Choose Incident Tag",
-                                        width: 350,
-                                        onSelected: (value) {
-                                          _dropdownValue = value;
-                                        },
-                                        
-                                        dropdownMenuEntries: incidentTags
-                                            .map((Map<String, dynamic> tag) {
-                                          return DropdownMenuEntry(
-                                            
-                                              value: tag['tag_id'],
-                                              label: tag['tag_name']);
-                                        }).toList(),
-                                      );
-                                    }
-                                  },
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return IncidentTagDialog(
-                                        onUpdate: () {
-                                          setState(() {});
-                                        },
-                                      );
-                                    },
-                                  );
-                                },
-                                child: Text("Add New"),
-                              ),
-                            ],
-                          ),
+                          IncidentTagsDropdown(onAction: (tag) {
+                            setState(() {
+                              _dropdownValue = tag;
+                              print("happened $_dropdownValue");
+                            });
+                          },),
                           SizedBox(
                             height: 16,
                           ),
@@ -369,7 +316,15 @@ class _AddIncidentPageState extends State<AddIncidentPage> {
               width: 32,
             ),
             Flexible(
-              child: LocationContainer(),
+              child: LocationContainer(
+                onAction: (newlatitude, newlongitude, address) {
+                  setState(() {
+                    latitude = newlatitude;
+                    longitude = newlongitude;
+                    address_str = address;
+                  });
+                },
+              ),
             ),
           ],
         ),
@@ -378,11 +333,129 @@ class _AddIncidentPageState extends State<AddIncidentPage> {
   }
 }
 
+class IncidentTagsDropdown extends StatefulWidget {
+  final Function(String tag) onAction;
+  const IncidentTagsDropdown({Key? key, required this.onAction}) : super(key: key);
+
+  @override
+  _IncidentTagsDropdownState createState() => _IncidentTagsDropdownState();
+}
+
+class _IncidentTagsDropdownState extends State<IncidentTagsDropdown> {
+  late StreamController<List<Map<String, dynamic>>> _tagsStreamController;
+  late List<Map<String, dynamic>> _incidentTags;
+
+  @override
+  void initState() {
+    super.initState();
+    _tagsStreamController = StreamController<List<Map<String, dynamic>>>();
+    _incidentTags = [];
+
+    // Fetch incident tags when the widget is initialized
+    getIncidentTags().then((tags) {
+      _tagsStreamController.add(tags);
+    });
+  }
+
+  Stream<List<Map<String, dynamic>>> get tagsStream => _tagsStreamController.stream;
+
+  Future<List<Map<String, dynamic>>> getIncidentTags() async {
+    List<Map<String, dynamic>> incidentTags = [];
+
+    try {
+      QuerySnapshot tagsSnapshot =
+          await FirebaseFirestore.instance.collection('incident_tags').get();
+
+      if (tagsSnapshot.docs.isNotEmpty) {
+        for (var tagDocument in tagsSnapshot.docs) {
+          Map<String, dynamic> tagData =
+              tagDocument.data() as Map<String, dynamic>;
+          incidentTags.add({
+            'tag_id': tagDocument.id,
+            'tag_name': tagData['tag_name'],
+            // Add more fields if needed
+          });
+        }
+      } else {
+        print('No tags found in the incident_tags collection.');
+      }
+    } catch (ex) {
+      print('Error fetching incident tags: $ex');
+    }
+
+    return incidentTags;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: StreamBuilder<List<Map<String, dynamic>>>(
+            stream: tagsStream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                // Data is still loading
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                // Error occurred while fetching data
+                return Text('Error: ${snapshot.error}');
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                // No data available
+                return Text('No incident tags found.');
+              } else {
+                // Data has been successfully fetched
+                _incidentTags = snapshot.data!;
+
+                return DropdownMenu(
+                  hintText: "Choose Incident Tag",
+                  width: 350,
+                  onSelected: (value) {
+                    widget.onAction(value);
+                  },
+                  dropdownMenuEntries:
+                      _incidentTags.map((Map<String, dynamic> tag) {
+                    return DropdownMenuEntry(
+                        value: tag['tag_id'], label: tag['tag_name']);
+                  }).toList(),
+                );
+              }
+            },
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return IncidentTagDialog(
+                  onUpdate: () {
+                    // Fetch and update incident tags when the dialog is closed
+                    getIncidentTags().then((tags) {
+                      _tagsStreamController.add(tags);
+                    });
+                  },
+                );
+              },
+            );
+          },
+          child: Text("Add New"),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _tagsStreamController.close();
+    super.dispose();
+  }
+}
+
 class IncidentTagDialog extends StatefulWidget {
   final VoidCallback onUpdate;
-  const IncidentTagDialog(
-      {Key? key, required this.onUpdate})
-      : super(key: key);
+  const IncidentTagDialog({Key? key, required this.onUpdate}) : super(key: key);
 
   @override
   _IncidentTagDialogState createState() => _IncidentTagDialogState();
@@ -439,7 +512,37 @@ class _IncidentTagDialogState extends State<IncidentTagDialog> {
       throw error; // Propagate the error if needed
     }
   }
+  Future<void> addOrUpdateIncidentTag(String tagName, String description) async {
+  try {
+    // Reference to the 'incident_tags' collection
+    CollectionReference incidentTagsCollection =
+        FirebaseFirestore.instance.collection('incident_tags');
 
+    // Check if the tag name already exists in the collection
+    QuerySnapshot existingTagsSnapshot =
+        await incidentTagsCollection.where('tag_name', isEqualTo: tagName).get();
+
+    if (existingTagsSnapshot.docs.isNotEmpty) {
+      // Tag name already exists
+      Utilities.showSnackBar("This tag already exists", Colors.red);
+      return;
+      
+    } else {
+      // Tag name does not exist, add a new incident tag
+      await incidentTagsCollection.add({
+        'tag_name': tagName,
+        'priority': "Low",
+        // Add more fields as needed
+      });
+
+      print('Incident tag added successfully');
+      Utilities.showSnackBar("Tag added successfully", Colors.green);
+    }
+  } catch (error) {
+    print('Error adding or updating incident tag: $error');
+    throw error; // Propagate the error if needed
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -465,13 +568,10 @@ class _IncidentTagDialogState extends State<IncidentTagDialog> {
                     return;
                   }
 
-                  await addIncidentTag(
-                        _incidentTagController.text.trim(), "Low");
-                    widget.onUpdate();
-                    Utilities.showSnackBar(
-                        "Successfully added tag", Colors.green);
-                    Navigator.of(context).pop();
-
+                  await addOrUpdateIncidentTag(
+                      _incidentTagController.text.trim(), "Low");
+                  widget.onUpdate();
+                  Navigator.of(context).pop();
                 },
                 large: false),
           ],
@@ -485,31 +585,29 @@ class _IncidentTagDialogState extends State<IncidentTagDialog> {
   }
 }
 
-
 class LocationContainer extends StatefulWidget {
-  const LocationContainer({ Key? key }) : super(key: key);
+  final Function(double latitude, double longitude, String address) onAction;
+  const LocationContainer({Key? key, required this.onAction}) : super(key: key);
 
   @override
   _LocationContainerState createState() => _LocationContainerState();
 }
 
 class _LocationContainerState extends State<LocationContainer> {
-    
-
-     late GoogleMapController mapController;
+  late GoogleMapController mapController;
 
   final LatLng _center = const LatLng(14.967031, 120.9231);
 
   double latitude = 0;
   double longitude = 0;
 
-String coords = "Tapped Location: Untapped";
+  String coords = "Tapped Location: Untapped";
   String address_str = "";
 
   LatLng? _tappedLocation;
   LatLng? circleCenter;
 
-    void _onMapCreated(GoogleMapController controller) {
+  void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
 
@@ -546,6 +644,7 @@ String coords = "Tapped Location: Untapped";
             final address = results[0]['formatted_address'] as String;
             setState(() {
               address_str = address;
+              widget.onAction(latitude, longitude, address_str);
             });
           } else {
             print('No results found for reverse geocoding.');
@@ -565,61 +664,60 @@ String coords = "Tapped Location: Untapped";
   @override
   Widget build(BuildContext context) {
     return Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Colors.white,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Incident Location",
+              style: subheading,
+            ),
+            Container(
+              width: double.infinity,
+              height: 250,
+              color: Colors.grey,
+              child: GoogleMap(
+                onMapCreated: _onMapCreated,
+                initialCameraPosition: CameraPosition(
+                  target: _center,
+                  zoom: 15,
                 ),
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                            "Incident Location",
-                            style: subheading,
-                          ),
-                          Container(
-                            width: double.infinity,
-                            height: 250,
-                            color: Colors.grey,
-                            child: GoogleMap(
-                              onMapCreated: _onMapCreated,
-                              initialCameraPosition: CameraPosition(
-                                target: _center,
-                                zoom: 15,
-                              ),
-                              onTap: _onMapTap,
-                              circles: Set.from([
-                                if (circleCenter != null)
-                                  Circle(
-                                    circleId: CircleId("customCircle"),
-                                    center: circleCenter!,
-                                    radius: 10, // Radius in meters
-                                    fillColor: Color.fromARGB(255, 243, 33, 33)
-                                        .withOpacity(0.3),
-                                    strokeColor:
-                                        const Color.fromARGB(255, 243, 33, 33),
-                                    strokeWidth: 2,
-                                  ),
-                              ]),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            coords,
-                            style: regular,
-                          ),
-                          Text(
-                            address_str,
-                            style: regular,
-                          ),
-                    ],
-                  ),
-                ),
-              );
+                onTap: _onMapTap,
+                circles: Set.from([
+                  if (circleCenter != null)
+                    Circle(
+                      circleId: CircleId("customCircle"),
+                      center: circleCenter!,
+                      radius: 10, // Radius in meters
+                      fillColor:
+                          Color.fromARGB(255, 243, 33, 33).withOpacity(0.3),
+                      strokeColor: const Color.fromARGB(255, 243, 33, 33),
+                      strokeWidth: 2,
+                    ),
+                ]),
+              ),
+            ),
+            SizedBox(
+              height: 8,
+            ),
+            Text(
+              coords,
+              style: regular,
+            ),
+            Text(
+              address_str,
+              style: regular,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

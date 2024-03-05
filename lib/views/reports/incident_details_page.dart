@@ -1402,11 +1402,21 @@ class _IncidentTagDialogState extends State<IncidentTagDialog> {
 
   Future<void> addIncidentTag(String tagName, String description) async {
     try {
-      // Reference to the 'incident_tags' collection
-      CollectionReference incidentTagsCollection =
-          FirebaseFirestore.instance.collection('incident_tags');
+    // Reference to the 'incident_tags' collection
+    CollectionReference incidentTagsCollection =
+        FirebaseFirestore.instance.collection('incident_tags');
 
-      // Add a new document with auto-generated ID
+    // Check if the tag name already exists in the collection
+    QuerySnapshot existingTagsSnapshot =
+        await incidentTagsCollection.where('tag_name', isEqualTo: tagName).get();
+
+    if (existingTagsSnapshot.docs.isNotEmpty) {
+      // Tag name already exists
+      Utilities.showSnackBar("This tag already exists", Colors.red);
+      return;
+      
+    } else {
+      // Tag name does not exist, add a new incident tag
       DocumentReference newDocRef = await incidentTagsCollection.add({
         'tag_name': tagName,
         'priority': "Low",
@@ -1416,10 +1426,12 @@ class _IncidentTagDialogState extends State<IncidentTagDialog> {
       await updateIncidentTag(widget.incident_id, newDocRef.id);
 
       print('Incident tag added successfully');
-    } catch (error) {
-      print('Error adding incident tag: $error');
-      throw error; // Propagate the error if needed
+      Utilities.showSnackBar("Tag added successfully", Colors.green);
     }
+  } catch (error) {
+    print('Error adding or updating incident tag: $error');
+    throw error; // Propagate the error if needed
+  }
   }
 
   Future<void> updateIncidentTag(String incident_id, String newTagName) async {
@@ -1512,8 +1524,6 @@ class _IncidentTagDialogState extends State<IncidentTagDialog> {
                     await addIncidentTag(
                         _incidentTagController.text.trim(), "Low");
                     widget.onUpdate();
-                    Utilities.showSnackBar(
-                        "Successfully added tag", Colors.green);
                     Navigator.of(context).pop();
                   } else {
                     Utilities.showSnackBar(
@@ -1912,7 +1922,17 @@ class _AddStatusDialogState extends State<AddStatusDialog> {
       CollectionReference statusesCollection =
           FirebaseFirestore.instance.collection('user_defined_statuses');
 
-      // Add a new document with the specified status_content field
+      QuerySnapshot existingStatusSnapshot = await statusesCollection
+        .where('status_content', isEqualTo: _statusController.text.trim())
+        .get();
+
+    if (existingStatusSnapshot.docs.isNotEmpty) {
+      // Status content already exists, show a snackbar
+            Utilities.showSnackBar(
+          "Tag is already existing", Colors.red);
+          return;
+    } else {
+      // Status content does not exist, add a new user-defined status
       await statusesCollection.add({
         'status_content': _statusController.text.trim(),
         // Add more fields as needed
@@ -1921,6 +1941,7 @@ class _AddStatusDialogState extends State<AddStatusDialog> {
       print('User-defined status added successfully.');
       Utilities.showSnackBar(
           "User-defined status added successfully", Colors.green);
+    }
     } catch (error) {
       print('Error adding user-defined status: $error');
       throw error; // Propagate the error if needed

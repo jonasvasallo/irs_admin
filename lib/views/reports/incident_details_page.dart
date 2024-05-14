@@ -754,6 +754,19 @@ class _IncidentDetailsPageState extends State<IncidentDetailsPage> {
                                                           contact_no: responder[
                                                               'contact_no'],
                                                           onDelete: () {
+                                                            if (incidentDetails[
+                                                                        'status'] !=
+                                                                    'Verifying' ||
+                                                                incidentDetails[
+                                                                        'status'] !=
+                                                                    'Verified') {
+                                                              Utilities
+                                                                  .showSnackBar(
+                                                                      "You cannot remove this person now",
+                                                                      Colors
+                                                                          .red);
+                                                              return;
+                                                            }
                                                             removeUserFromResponders(
                                                                 widget
                                                                     .incident_id,
